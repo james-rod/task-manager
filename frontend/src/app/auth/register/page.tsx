@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/lib/axiosClient";
-import { toast } from "react-hot-toast";
 import "./Register.css"; // 👈 import plain CSS
 
 type RegisterResponse = {
@@ -35,19 +34,23 @@ export default function RegisterPage() {
         "/auth/register",
         form
       );
-
-      // Store token if needed, or skip storing until login
-      localStorage.setItem("token", response.data.token);
-
-      toast.success("✅ Registration successful! Redirecting to login...");
-
-      // Small delay ensures toast is visible before redirect
-      setTimeout(() => {
-        router.push("/login");
-      }, 1000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Registration Failed");
-      toast.error(err.response?.data?.message || "Registration Failed");
+      const { token } = response.data;
+      localStorage.setItem("token", token);
+      router.push("/login");
+    } catch (error: unknown) {
+      // ✅ TypeScript-safe error handling
+      if (error instanceof Error) {
+        setError(error.message);
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as any).response?.data?.message === "string"
+      ) {
+        setError((error as any).response.data.message);
+      } else {
+        setError("Registration Failed");
+      }
     } finally {
       setIsLoading(false);
     }
