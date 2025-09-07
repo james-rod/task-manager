@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import axiosClient from "@/lib/axiosClient";
-import "./Register.css"; // 👈 import plain CSS
+import type { AxiosError } from "axios";
+import "./Register.css";
 
 type RegisterResponse = {
   user: {
@@ -37,17 +38,12 @@ export default function RegisterPage() {
       const { token } = response.data;
       localStorage.setItem("token", token);
       router.push("/login");
-    } catch (error: unknown) {
-      // ✅ TypeScript-safe error handling
-      if (error instanceof Error) {
-        setError(error.message);
-      } else if (
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        typeof (error as any).response?.data?.message === "string"
-      ) {
-        setError((error as any).response.data.message);
+    } catch (err: unknown) {
+      // ✅ Correctly typed Axios error handling
+      if (isAxiosError<{ message?: string }>(err)) {
+        setError(err.response?.data?.message ?? "Registration Failed");
+      } else if (err instanceof Error) {
+        setError(err.message);
       } else {
         setError("Registration Failed");
       }
@@ -97,5 +93,17 @@ export default function RegisterPage() {
         </button>
       </form>
     </div>
+  );
+}
+
+/**
+ * Type guard to check if an error is an AxiosError
+ */
+function isAxiosError<T = unknown>(error: unknown): error is AxiosError<T> {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "isAxiosError" in error &&
+    (error as AxiosError).isAxiosError === true
   );
 }
