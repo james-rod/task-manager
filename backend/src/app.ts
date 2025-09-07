@@ -3,14 +3,19 @@ import cors from "cors";
 
 import type { Request, Response, NextFunction } from "express";
 
-// Import your routes
 import authRoutes from "./routes/authRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
 
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigin = process.env.CLIENT_URL || "*";
+app.use(
+  cors({
+    origin: allowedOrigin,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Routes
@@ -22,12 +27,12 @@ app.get("/", (req, res) => {
   res.send("Backend is running 🚀");
 });
 
-// 404 handler (if no route matched)
+// 404 handler
 app.use((req: Request, res: Response) => {
   res.status(404).json({ error: "Route not found" });
 });
 
-// Global error handler (catches thrown errors)
+// Global error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something went wrong!" });
