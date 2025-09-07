@@ -37,8 +37,12 @@ export default function RegisterPage() {
       const { token } = response.data;
       localStorage.setItem("token", token);
       router.push("/login");
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Registration Failed");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Registration Failed");
+      }
     } finally {
       setIsLoading(false);
     }

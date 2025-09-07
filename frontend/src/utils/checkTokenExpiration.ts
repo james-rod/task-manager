@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTaskStore } from "@/store/useTaskStore";
 
 type DecodedToken = {
   exp: number;
@@ -11,6 +12,7 @@ export const checkTokenExpiration = () => {
 
   // Get Zustand state outside React
   const { logout } = useAuthStore.getState();
+  const { clearTasks } = useTaskStore.getState();
 
   if (user?.token) {
     try {
@@ -18,12 +20,14 @@ export const checkTokenExpiration = () => {
       const currentTime = Math.floor(Date.now() / 1000);
 
       if (decoded.exp < currentTime) {
-        logout(); // Log out if token expired
-        console.warn("⛔ Token expired. User logged out.");
+        logout(); // Log out user
+        clearTasks(); // Clear tasks from store
+        console.warn("⛔ Token expired. User logged out and tasks cleared.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("⚠️ Invalid token:", error);
       logout();
+      clearTasks();
     }
   }
 };

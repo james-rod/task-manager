@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axiosClient from "@/lib/axiosClient";
 import { useAuth } from "@/hooks/useAuth";
 import "./Login.css"; // 👈 import our custom CSS
+import axios from "axios";
 
 type LoginResponse = {
   user: {
@@ -40,8 +41,15 @@ export default function LoginPage() {
       setUser({ ...user, token });
       localStorage.setItem("token", token);
       router.push("/dashboard");
-    } catch (error: any) {
-      setError(error.response?.data?.message || "Login Failed");
+    } catch (err: unknown) {
+      // Properly handle unknown type
+      if (axios.isAxiosError(err)) {
+        setError(err.response?.data?.message || "Login Failed");
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Login Failed: Unknown error");
+      }
     } finally {
       setIsLoading(false);
     }

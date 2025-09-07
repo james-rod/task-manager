@@ -23,7 +23,7 @@ interface TaskState {
   ) => Promise<{ success: boolean; message?: string }>;
   updateTask: (id: number, data: Partial<Task>) => Promise<void>;
   deleteTask: (id: number, token: string) => Promise<void>;
-  clearTasks: () => void; // ✅ added here
+  clearTasks: () => void; // ✅ clear all tasks
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -35,7 +35,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         headers: { Authorization: `Bearer ${token}` },
       });
       set({ tasks: res.data });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching tasks:", err);
       toast.error("❌ Failed to fetch tasks");
     }
@@ -56,12 +56,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
       set({ tasks: [...get().tasks, res.data] });
       return { success: true };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error adding task:", err);
-      return {
-        success: false,
-        message: err.response?.data?.error || err.message,
-      };
+      const message =
+        err instanceof Error ? err.message : "Unknown error adding task";
+      return { success: false, message };
     }
   },
 
@@ -78,11 +77,11 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         tasks: get().tasks.map((task) => (task.id === id ? res.data : task)),
       });
       toast.success("✅ Task updated successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error updating task:", err);
-      toast.error(
-        `❌ Failed to update task: ${err.response?.data?.error || err.message}`
-      );
+      const message =
+        err instanceof Error ? err.message : "Unknown error updating task";
+      toast.error(`❌ Failed to update task: ${message}`);
     }
   },
 
@@ -93,13 +92,13 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       });
       set({ tasks: get().tasks.filter((task) => task.id !== id) });
       toast.success("✅ Task deleted successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error deleting task:", err);
-      toast.error(
-        `❌ Failed to delete task: ${err.response?.data?.error || err.message}`
-      );
+      const message =
+        err instanceof Error ? err.message : "Unknown error deleting task";
+      toast.error(`❌ Failed to delete task: ${message}`);
     }
   },
 
-  clearTasks: () => set({ tasks: [] }), // ✅ clear all tasks (useful for logout)
+  clearTasks: () => set({ tasks: [] }), // ✅ useful for logout
 }));
