@@ -31,7 +31,6 @@ export default function TaskForm() {
 
   return (
     <div className="task-form-container">
-      <h2>Create Task</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
