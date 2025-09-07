@@ -23,6 +23,15 @@ export default function TaskCard({ task }: TaskCardProps) {
     setIsEditing(false);
   };
 
+  const handleDelete = async () => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      await deleteTask(task.id, token);
+    } else {
+      console.error("❌ No token found, cannot delete task");
+    }
+  };
+
   return (
     <div className="border p-3 rounded-md shadow-sm flex flex-col space-y-2">
       {isEditing ? (
@@ -82,7 +91,7 @@ export default function TaskCard({ task }: TaskCardProps) {
                   Edit
                 </button>
                 <button
-                  onClick={() => deleteTask(task.id)}
+                  onClick={handleDelete}
                   className="bg-red-500 text-white px-3 py-1 rounded"
                 >
                   Delete
